@@ -1,0 +1,13 @@
+{
+  "amountThreshold": 1000,
+  "amountRisk": 0.5,
+  "suspiciousDomains": [
+    ".ru", "test.com", "demo.com", "fake.com",
+    "10minutemail.com", "guerrillamail.com", "mailinator.com", 
+    "yopmail.com", "mailnesia.com", "throwaway.email"
+  ],
+  "domainRisk": 0.4,
+  "velocityThreshold": 3,
+  "velocityRisk": 0.5,
+  "geoMismatchRisk": 0.5
+} 
