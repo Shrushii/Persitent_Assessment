@@ -47,11 +47,35 @@ describe('Payment Gateway (e2e)', () => {
   });
 
   describe('GET /', () => {
-    it('should return hello world', () => {
+    it('should return "NestJS app is running!"', () => {
       return request(app.getHttpServer())
-        .get('/api/')
+        .get('/')
         .expect(200)
         .expect('NestJS app is running!');
+    });
+  });
+
+  describe('GET /hello', () => {
+    it('should return "Hello World!"', () => {
+      return request(app.getHttpServer())
+        .get('/hello')
+        .expect(200)
+        .expect('Hello World!');
+    });
+  });
+
+  describe('GET /health', () => {
+    it('should return health status', () => {
+      return request(app.getHttpServer())
+        .get('/health')
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('status');
+          expect(res.body).toHaveProperty('timestamp');
+          expect(res.body).toHaveProperty('version');
+          expect(res.body.status).toBe('healthy');
+          expect(res.body.version).toBe('1.0.0');
+        });
     });
   });
 
@@ -67,7 +91,7 @@ describe('Payment Gateway (e2e)', () => {
 
     it('should process a valid charge request successfully', () => {
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send(validChargeRequest)
         .expect(200)
         .expect((res) => {
@@ -84,7 +108,7 @@ describe('Payment Gateway (e2e)', () => {
 
     it('should block transaction with large amount', () => {
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send({
           ...validChargeRequest,
           amount: 2000
@@ -99,7 +123,7 @@ describe('Payment Gateway (e2e)', () => {
 
     it('should block transaction with suspicious email domain', () => {
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send({
           ...validChargeRequest,
           email: 'user@test.com'
@@ -114,7 +138,7 @@ describe('Payment Gateway (e2e)', () => {
 
     it('should block transaction with geolocation mismatch', () => {
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send({
           ...validChargeRequest,
           ipCountry: 'CA',
@@ -130,7 +154,7 @@ describe('Payment Gateway (e2e)', () => {
 
     it('should block transaction with Russian IP', () => {
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send({
           ...validChargeRequest,
           ipCountry: 'RU',
@@ -152,14 +176,14 @@ describe('Payment Gateway (e2e)', () => {
       // Make 3 charges first
       for (let i = 0; i < 3; i++) {
         await request(app.getHttpServer())
-          .post('/api/payments/charge')
+          .post('/api/v1/payments/charge')
           .send(velocityRequest)
           .expect(200);
       }
 
       // 4th charge should be blocked due to velocity
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send(velocityRequest)
         .expect(403)
         .expect((res) => {
@@ -171,7 +195,7 @@ describe('Payment Gateway (e2e)', () => {
 
     it('should block transaction with all heuristics triggered', () => {
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send({
           amount: 2000,
           currency: 'USD',
@@ -191,7 +215,7 @@ describe('Payment Gateway (e2e)', () => {
     // Edge Cases
     it('should handle minimum amount (0.01)', () => {
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send({
           ...validChargeRequest,
           amount: 0.01
@@ -205,7 +229,7 @@ describe('Payment Gateway (e2e)', () => {
 
     it('should handle maximum amount (999999)', () => {
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send({
           ...validChargeRequest,
           amount: 999999
@@ -219,7 +243,7 @@ describe('Payment Gateway (e2e)', () => {
 
     it('should handle different currencies', () => {
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send({
           ...validChargeRequest,
           currency: 'EUR'
@@ -232,7 +256,7 @@ describe('Payment Gateway (e2e)', () => {
 
     it('should handle disposable email domains', () => {
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send({
           ...validChargeRequest,
           email: 'user@10minutemail.com'
@@ -246,7 +270,7 @@ describe('Payment Gateway (e2e)', () => {
 
     it('should handle case-insensitive email domains', () => {
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send({
           ...validChargeRequest,
           email: 'user@TEST.COM'
@@ -262,14 +286,14 @@ describe('Payment Gateway (e2e)', () => {
     it('should reject request with missing amount', () => {
       const { amount, ...invalidRequest } = validChargeRequest;
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send(invalidRequest)
         .expect(400);
     });
 
     it('should reject request with negative amount', () => {
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send({
           ...validChargeRequest,
           amount: -100
@@ -279,7 +303,7 @@ describe('Payment Gateway (e2e)', () => {
 
     it('should reject request with zero amount', () => {
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send({
           ...validChargeRequest,
           amount: 0
@@ -289,7 +313,7 @@ describe('Payment Gateway (e2e)', () => {
 
     it('should reject request with invalid email', () => {
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send({
           ...validChargeRequest,
           email: 'invalid-email'
@@ -300,7 +324,7 @@ describe('Payment Gateway (e2e)', () => {
     it('should reject request with missing ipCountry', () => {
       const { ipCountry, ...invalidRequest } = validChargeRequest;
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send(invalidRequest)
         .expect(400);
     });
@@ -308,14 +332,14 @@ describe('Payment Gateway (e2e)', () => {
     it('should reject request with missing billingCountry', () => {
       const { billingCountry, ...invalidRequest } = validChargeRequest;
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send(invalidRequest)
         .expect(400);
     });
 
     it('should reject request with empty string values', () => {
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send({
           ...validChargeRequest,
           email: '',
@@ -327,7 +351,7 @@ describe('Payment Gateway (e2e)', () => {
 
     it('should reject request with non-numeric amount', () => {
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send({
           ...validChargeRequest,
           amount: 'not-a-number' as any
@@ -337,7 +361,7 @@ describe('Payment Gateway (e2e)', () => {
 
     it('should reject request with additional unknown fields', () => {
       return request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send({
           ...validChargeRequest,
           unknownField: 'should-be-rejected'
@@ -349,7 +373,7 @@ describe('Payment Gateway (e2e)', () => {
   describe('GET /payments/transactions', () => {
     it('should return empty array initially', () => {
       return request(app.getHttpServer())
-        .get('/api/payments/transactions')
+        .get('/api/v1/payments/transactions')
         .expect(200)
         .expect((res) => {
           expect(Array.isArray(res.body)).toBe(true);
@@ -360,7 +384,7 @@ describe('Payment Gateway (e2e)', () => {
     it('should return transactions after processing charges', async () => {
       // Make a charge first
       await request(app.getHttpServer())
-        .post('/api/payments/charge')
+        .post('/api/v1/payments/charge')
         .send({
           amount: 100,
           currency: 'USD',
@@ -373,7 +397,7 @@ describe('Payment Gateway (e2e)', () => {
 
       // Check transactions endpoint
       return request(app.getHttpServer())
-        .get('/api/payments/transactions')
+        .get('/api/v1/payments/transactions')
         .expect(200)
         .expect((res) => {
           expect(Array.isArray(res.body)).toBe(true);
@@ -388,7 +412,7 @@ describe('Payment Gateway (e2e)', () => {
       // Make multiple charges
       for (let i = 0; i < 3; i++) {
         await request(app.getHttpServer())
-          .post('/api/payments/charge')
+          .post('/api/v1/payments/charge')
           .send({
             amount: 100 + i,
             currency: 'USD',
@@ -401,9 +425,9 @@ describe('Payment Gateway (e2e)', () => {
       }
 
       // Check transactions endpoint
-      return request(app.getHttpServer())
-        .get('/api/payments/transactions')
-        .expect(200)
+    return request(app.getHttpServer())
+        .get('/api/v1/payments/transactions')
+      .expect(200)
         .expect((res) => {
           expect(Array.isArray(res.body)).toBe(true);
           expect(res.body.length).toBeGreaterThanOrEqual(3);
