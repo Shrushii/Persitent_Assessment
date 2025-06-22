@@ -7,9 +7,15 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = configuration();
 
-  // Global prefix - exclude docs path
+  // Global prefix - exclude docs path and basic endpoints
   app.setGlobalPrefix(config.api.prefix, {
-    exclude: [config.api.swagger.path, `${config.api.swagger.path}/(.*)`],
+    exclude: [
+      config.api.swagger.path, 
+      `${config.api.swagger.path}/(.*)`,
+      '', // Root path
+      'hello', // Hello endpoint
+      'health' // Health endpoint
+    ],
   });
 
   // CORS configuration
