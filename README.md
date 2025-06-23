@@ -348,48 +348,110 @@ npm run test:e2e
 - 🔄 SSL/TLS encryption
 - 🔄 Load balancing and horizontal scaling
 
+## 🚀 Production-Grade Enhancements
+
+### Background Job Processing with Redis & BullMQ
+
+**Current Implementation:**
+- Uses `setInterval` for billing scheduler (runs every 60 seconds)
+- In-memory job processing with basic retry logic
+- Suitable for assessment and development purposes
+
+**Production-Grade Approach with Redis & BullMQ:**
+
+#### **Why Redis + BullMQ for Production?**
+
+**1. Persistence & Reliability**
+- **Job Persistence**: Billing jobs survive application restarts and server crashes
+- **Fault Tolerance**: Automatic retry mechanisms with exponential backoff
+- **Data Durability**: Redis persistence ensures no billing jobs are lost
+
+**2. Advanced Scheduling**
+- **Precise Timing**: Exact scheduling instead of polling every 60 seconds
+- **Complex Patterns**: Support for cron-like expressions and custom scheduling
+- **Delayed Jobs**: Future billing dates handled automatically without polling
+
+**3. Scalability & Performance**
+- **Horizontal Scaling**: Multiple worker instances can process jobs concurrently
+- **Concurrency Control**: Configurable job processing limits and rate limiting
+- **Queue Management**: Built-in job prioritization, batching, and dead letter queues
+
+**4. Enterprise Features**
+- **Job Monitoring**: Real-time dashboard for queue status and job progress
+- **Metrics & Analytics**: Comprehensive job statistics and performance metrics
+- **Error Handling**: Detailed failure tracking with dead letter queues for failed jobs
+- **Rate Limiting**: Prevent overwhelming payment providers with too many requests
+
+#### **Production Architecture Benefits**
+
+**1. Multi-Instance Deployment**
+- Multiple application instances can share the same Redis queue
+- Jobs are distributed across workers automatically
+- No duplicate billing processing across instances
+
+**2. Advanced Error Handling**
+- Failed billing jobs are automatically retried with exponential backoff
+- Permanently failed jobs are moved to dead letter queues for manual review
+- Detailed error logging and monitoring for debugging
+
+**3. Monitoring & Observability**
+- Real-time queue metrics (waiting, active, completed, failed jobs)
+- Job progress tracking for long-running operations
+- Performance analytics and alerting capabilities
+
+**4. Production Reliability**
+- **99.9% Uptime**: Jobs continue processing even if application instances restart
+- **Data Consistency**: No duplicate or missed billing cycles
+- **Audit Trail**: Complete job history for compliance and debugging
+
+#### **Implementation Strategy**
+
+**Phase 1: Redis Integration**
+- Add Redis to Docker Compose for development
+- Implement BullMQ queue for billing jobs
+- Migrate from setInterval to queue-based scheduling
+
+**Phase 2: Advanced Features**
+- Add job monitoring and metrics endpoints
+- Implement dead letter queues for failed jobs
+- Add rate limiting and concurrency controls
+
+**Phase 3: Production Deployment**
+- Multi-instance deployment with load balancing
+- Redis clustering for high availability
+- Monitoring and alerting integration
+
+#### **Technology Stack for Production**
+
+**Queue Management:**
+- **BullMQ**: Modern Redis-based job queue for Node.js
+- **Redis**: In-memory data store with persistence
+- **ioredis**: Robust Redis client with connection pooling
+
+**Monitoring & Observability:**
+- **Bull Board**: Web-based queue monitoring dashboard
+- **Prometheus**: Metrics collection and monitoring
+- **Grafana**: Visualization and alerting
+
+**Deployment:**
+- **Kubernetes**: Container orchestration for scaling
+- **Redis Cluster**: High availability Redis deployment
+- **Load Balancer**: Traffic distribution across instances
+
+#### **Benefits Over Current Implementation**
+
+| Feature | Current (setInterval) | Production (Redis + BullMQ) |
+|---------|---------------------|---------------------------|
+| **Persistence** | ❌ Lost on restart | ✅ Survives restarts |
+| **Scheduling** | ⚠️ Polling every 60s | ✅ Precise timing |
+| **Scalability** | ❌ Single instance | ✅ Multi-instance |
+| **Error Handling** | ⚠️ Basic retry | ✅ Advanced retry logic |
+| **Monitoring** | ❌ Limited | ✅ Comprehensive |
+| **Production Ready** | ❌ No | ✅ Enterprise-grade |
+
+This production approach transforms the assessment implementation into a robust, scalable, and enterprise-ready billing system suitable for handling thousands of subscriptions with high reliability and observability.
+
 ## 🔧 Development
 
 ### Project Structure
 ```
-src/
-├── app.controller.ts                    # Health endpoints
-├── app.module.ts                       # Root module
-├── main.ts                            # Application bootstrap
-├── config/
-│   └── configuration.ts               # Environment configuration
-├── payments/                          # Payment gateway module
-│   ├── controllers/
-│   ├── services/
-│   ├── dto/
-│   └── entities/
-└── subscriptions/                     # Subscription billing module
-    ├── controllers/
-    ├── services/
-    ├── dto/
-    └── entities/
-```
-
-### Key Technologies
-- **Framework**: NestJS (Node.js)
-- **Language**: TypeScript
-- **LLM**: Ollama with TinyLlama
-- **Documentation**: Swagger/OpenAPI
-- **Testing**: Jest
-- **Containerization**: Docker & Docker Compose
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 🤝 Support
-
-For questions or issues:
-1. Check the Swagger documentation at `/docs`
-2. Review the test cases for usage examples
-3. Check the logs: `docker-compose logs -f`
-4. Open an issue on the repository
-
----
-
-**Built with ❤️ using NestJS, TypeScript, and Ollama LLM**
