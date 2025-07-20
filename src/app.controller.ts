@@ -13,7 +13,7 @@ export class AppController {
     description: 'NestJS application is running',
     schema: {
       type: 'string',
-      example: 'NestJS app is running!'
+      example: 'NestJS app is running in Shruti PC'
     }
   })
   getRoot(): string {
